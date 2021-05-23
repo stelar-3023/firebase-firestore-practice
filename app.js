@@ -20,21 +20,25 @@ function renderCafe(doc) {
   cafeList.appendChild(li);
 
   // deleting data
-  cross.addEventListener("click", event =>{
+  cross.addEventListener("click", (event) => {
     event.stopPropagation();
     let id = event.target.parentElement.getAttribute("data-id");
     db.collection("cafes").doc(id).delete();
-  })
+  });
 }
 // getting data
-db.collection("cafes")
-  .get()
-  .then((snapshot) => {
-    snapshot.docs.forEach((doc) => {
-      // console.log(doc.data());
-      renderCafe(doc);
-    });
-  });
+// db.collection("cafes")
+//   //.orderBy("city")
+//   //.where()
+//   .get()
+//   .then((snapshot) => {
+//     snapshot.docs.forEach((doc) => {
+//       // console.log(doc.data());
+//       renderCafe(doc);
+//     });
+//   });
+
+
 // saving data
 form.addEventListener("submit", (event) => {
   event.preventDefault();
@@ -45,3 +49,16 @@ form.addEventListener("submit", (event) => {
   form.name.value = "";
   form.city.value = "";
 });
+
+//real-time listener
+db.collection("cafes").orderBy("city").onSnapshot(snapshot => {
+  let changes = snapshot.docChanges();
+  changes.forEach(change => {
+    if(change.type == "added"){
+      renderCafe(change.doc)
+    } else if(change.type == "removed") {
+      let li = cafeList.querySelector("[data-id=" + change.doc.id + "]");
+      cafeList.removeChild(li);
+    }
+  })
+})
